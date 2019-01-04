@@ -11,15 +11,32 @@
 # 3.   киви
 # 4.  арбуз
 
+print("Задача-1")
+lst = ["яблоко", "банан", "киви", "арбуз"]
+for i, fruit in enumerate(lst):
+    print("{}.{:>7}".format(i+1, fruit))
+
 # Подсказка: воспользоваться методом .format()
 
 
 # Задача-2:
 # Даны два произвольные списка.
 # Удалите из первого списка элементы, присутствующие во втором списке.
+print("\nЗадача-2")
+sample_list = list("dsf;awmkomco;emck")
+to_remove=list(";mck")
+new_list = [pos for pos in sample_list if pos not in to_remove]
+print(new_list)
 
 
 # Задача-3:
 # Дан произвольный список из целых чисел.
 # Получите НОВЫЙ список из элементов исходного, выполнив следующие условия:
 # если элемент кратен двум, то разделить его на 4, если не кратен, то умножить на два.
+print("\nЗадача-3")
+sample_list = [3,16,5,34,16,8,46,1,85,7,8,86,1,8,91,65,14,87,89,13]
+new_list = []
+for num in sample_list:
+    new_number = num / 4 if num % 2 == 0 else num * 2
+    new_list.append(new_number)
+print(new_list)

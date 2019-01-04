@@ -1,10 +1,16 @@
+import re
+
 # Задание-1: уравнение прямой вида y = kx + b задано в виде строки.
 # Определить координату y точки с заданной координатой x.
-
+print("Задание-1")
 equation = 'y = -12x + 11111140.2121'
 x = 2.5
 # вычислите и выведите y
-
+PATTERN = r'=\s(-?\d+.?\d+)x \+ (-?\d+.?\d+)'
+result = re.findall(PATTERN, equation)[0]
+k, b = float(result[0]), float(result[1])
+y = k * x + b
+print(y)
 
 # Задание-2: Дата задана в виде строки формата 'dd.mm.yyyy'.
 # Проверить, корректно ли введена дата.
@@ -24,7 +30,19 @@ date = '01.22.1001'
 date = '1.12.1001'
 date = '-2.10.3001'
 
+print("\nЗадание-2")
+input_date = '01.11.1985'
 
+date_array = input_date.split('.')
+check1 = 1 <= int(date_array[0]) <= 31
+check2 = 1 <= int(date_array[1]) <= 12
+check3 = 1 <= int(date_array[1]) <= 9999
+check4 = (len(date_array[0]) == 2) & (len(date_array[1]) == 2) & (len(date_array[2]) == 4)
+
+if check1 & check2 & check3 & check4:
+    print("Дата введена корректно")
+else:
+    print("Дата введена не корректно")
 # Задание-3: "Перевёрнутая башня" (Задача олимпиадного уровня)
 #
 # Вавилонцы решили построить удивительную башню —
@@ -54,3 +72,23 @@ date = '-2.10.3001'
 #
 # Вход: 11
 # Выход: 5 3
+
+n = 156
+block_size = 1
+last_block_number = 1
+last_line = 1
+# находим положение в рамках блока одной величины
+while n > last_block_number:
+    block_size += 1
+    last_block_number += block_size**2
+    last_line += block_size
+first_block_number = last_block_number - (block_size**2) + 1 # номер первой комнаты в блоке
+first_line = last_line - block_size + 1 # номер первого этажа в блоке
+
+# ищем на каком этаже в рамках блока находится комната, затем находим порядковый номер комнты
+for i in range(block_size):
+    if first_block_number + i * block_size <= n <= first_block_number + (i+1) * block_size - 1:
+        floor = first_line + i
+        room = n - (first_block_number + i * block_size) + 1
+
+print(floor, room)
