@@ -5,7 +5,11 @@
 # Для решения задачи не используйте встроенные функции и функции из модуля math.
 
 def my_round(number, ndigits):
-    pass
+    big_num = number * (10 ** (ndigits+1))
+    if big_num % 10 >= 5:
+        big_num += 10
+    big_num = int(big_num / 10) / (10 ** ndigits)
+    return big_num
 
 
 print(my_round(2.1234567, 5))
@@ -20,7 +24,9 @@ print(my_round(2.9999967, 5))
 # !!!P.S.: функция не должна НИЧЕГО print'ить
 
 def lucky_ticket(ticket_number):
-    pass
+    if len(str(ticket_number)) != 6: return False
+    numbers_list = list(map(lambda x: int(x), str(ticket_number)))
+    return sum(numbers_list[:3]) == sum(numbers_list[3:])
 
 
 print(lucky_ticket(123006))
