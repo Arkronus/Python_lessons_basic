@@ -12,6 +12,10 @@ matrix = [[1, 0, 8],
 #                  [8, 1, 2]]
 
 # Суть сложности hard: Решите задачу в одну строку
+def transpose(matrix):
+    return list(map(list, zip(*matrix)))
+
+print(transpose(matrix))
 
 # Задание-2:
 # Найдите наибольшее произведение пяти последовательных цифр в 1000-значном числе.
@@ -39,6 +43,22 @@ number = """
 05886116467109405077541002256983155200055935729725
 71636269561882670428252483600823257530420752963450"""
 
+from functools import reduce
+def mult(num_string):
+    list_of_ints = map(lambda x: int(x), list(num_string.replace('\n','')))
+    return reduce(lambda x, y: x * y, list_of_ints)
+
+def find_largest_sequence(num_string):
+    current_pos, current_max = 0, 0
+    for i in range(len(num_string) - 6):
+        string = num_string[i:(i+6)]
+        result = mult(string)
+        if result > current_max:
+            current_max = result
+            current_pos = i
+    return (current_max, current_pos)
+
+print(find_largest_sequence(number))
 
 # Задание-3 (Ферзи):
 # Известно, что на доске 8×8 можно расставить 8 ферзей так, чтобы они не били
@@ -47,3 +67,47 @@ number = """
 # Программа получает на вход восемь пар чисел,
 # каждое число от 1 до 8 — координаты 8 ферзей.
 # Если ферзи не бьют друг друга, выведите слово NO, иначе выведите YES.
+
+from random import randint
+def generate_queen():
+    return (randint(1,8), randint(1,8))
+
+def generate_queens_set():
+    queens = set()
+    while len(queens) < 8: 
+        queens.update([generate_queen()])
+    return queens
+
+def calculate_threatened_squares(queen_position):
+    '''
+    Возвращает множество кортежей, куда может сходить ферзь
+    '''
+    x, y = queen_position
+    squares = set()
+    # добавляем клетки по вертикали и горизонтали
+    squares.update([(x, i+1) for i in range(0,7)])
+    squares.update([(i+1, y) for i in range(0,7)])
+    
+    # добавляем клетки по диагоналям
+    for dir_shift in [[1,1], [-1,1], [1, -1], [-1,-1]]:
+        x_sq, y_sq = x, y
+        while True:
+            x_sq += dir_shift[0]
+            y_sq += dir_shift[1]
+            if x_sq < 0 or x_sq > 8 or y_sq < 0 or y_sq > 8:
+                break
+            new_position = (x_sq, y_sq)
+            squares.update([new_position])    
+    return squares
+
+def queen_battle():
+    queens = generate_queens_set()
+    for queen in queens:
+        other_queens = queens - set(queen)
+        threatened_squares = calculate_threatened_squares(queen)
+        if other_queens.intersection(threatened_squares):
+            return True
+    return False
+
+result = queen_battle()
+print("YES") if result else print("NO")
