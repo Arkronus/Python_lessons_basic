@@ -13,3 +13,24 @@
 # Для решения данной задачи используйте алгоритмы из задания easy,
 # оформленные в виде соответствующих функций,
 # и импортированные в данный файл из easy.py
+
+import sys, easy
+
+com = sys.argv[1]
+try:
+    name = sys.argv[2]
+except IndexError:
+    name = ''
+
+command = {
+    'cd': easy.cd,
+    'ls': easy.ls,
+    'rmdir': easy.rmdir,
+    'mkdir': easy.mkdir
+}
+
+if com in command:
+    command[com](name) if name else command[com]()
+else:
+    raise("Нет такой команды")
+        
