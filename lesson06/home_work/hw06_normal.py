@@ -18,6 +18,9 @@
 
 import itertools
 
+def intersection(lst1, lst2): 
+    return list(set(lst1) & set(lst2)) 
+
 class School():
     def __init__(self, classes=[], teachers=[]):
         self._classes = classes
@@ -44,21 +47,25 @@ class School():
 
     def student_courses(self, student_name):
         # Ученик --> Класс --> Учителя --> Предметы
-        student = _self._find_student_by_name
-        student_classes = [cl for cl in self._classes if student in cl.students]
-        pass
+        student = self._find_student_by_name(student_name)
+        student_classes = set([cl for cl in self._classes if student in cl.students])
+        student_teachers = []
+        for teacher in self._teachers:
+            if intersection(student_classes, teacher.classes()):
+                student_teachers.append(teacher)
+        lessons_list = [ t.course() for t in student_teachers ]
+        return lessons_list
 
     def student_parents(self, student_name):
-        student = self._find_student_by_name(name)
+        student = self._find_student_by_name(student_name)
         return student.parent_names()
 
     def _find_class_by_name(self, name):
         cl = [cl for cl in self._classes if cl.name == name]
         return cl[0]
 
-    def _find_student_by_name(self, name):
-        students = list(itertools.chain.from_iterable( [cl.students for cl in self._classes]))
-        # print([st.name() for st in students])
+    def _find_student_by_name(self, student_name):
+        students = itertools.chain.from_iterable( [cl.students for cl in self._classes])
         student = list(filter(lambda x: x.name() == student_name, students))[0]
         return student
 
@@ -87,6 +94,9 @@ class Teacher(Person):
 
     def classes(self):
         return self._classes
+
+    def course(self):
+        return self._course
 
 class Student(Person):
     """docstring for Student"""
