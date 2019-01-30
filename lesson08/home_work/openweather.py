@@ -49,13 +49,13 @@ OpenWeatherMap — онлайн-сервис, который предостав�
     На основе списка городов можно делать запрос к сервису по id города. И тут как раз понадобится APPID.
         By city ID
         Examples of API calls:
-        http://api.openweathermap.org/data/2.5/weather?id=2172797&appid=b1b15e88fa797225412429c1c50c122a
+        http://api.openweathermap.org/data/2.5/weather?id=2172797&appid=a85769551b7e37767aa0393a4c372da4
 
     Для получения температуры по Цельсию:
-    http://api.openweathermap.org/data/2.5/weather?id=520068&units=metric&appid=b1b15e88fa797225412429c1c50c122a
+    http://api.openweathermap.org/data/2.5/weather?id=520068&units=metric&appid=a85769551b7e37767aa0393a4c372da4
 
     Для запроса по нескольким городам сразу:
-    http://api.openweathermap.org/data/2.5/group?id=524901,703448,2643743&units=metric&appid=b1b15e88fa797225412429c1c50c122a
+    http://api.openweathermap.org/data/2.5/group?id=524901,703448,2643743&units=metric&appid=a85769551b7e37767aa0393a4c372da4
 
 
     Данные о погоде выдаются в JSON-формате
@@ -123,3 +123,68 @@ OpenWeatherMap — онлайн-сервис, который предостав�
 
 """
 
+import gzip
+import requests
+import os
+import shutil
+import sqlite3
+import json
+
+CITY_LIST = 'http://bulk.openweathermap.org/sample/city.list.json.gz'
+
+def get_id():
+    with open('app.id') as file:
+        data = file.readlines().pop()
+        return data
+
+
+def get_city_list():
+    file_name = CITY_LIST.split('/')[-1]
+    response = requests.get(CITY_LIST)
+    if response.status_code == 200:
+        print("Downloading {}".format(archive_name))
+        with open(os.path.join('data',archive_name), 'wb') as f:
+            f.write(response.content)
+        return file_name
+    return False
+
+def unzip(input_name,output_name):
+    with gzip.open(os.path.join('data',input_name), 'rb') as f_in:
+        with open(os.path.join('data',output_name), 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+            print("File {} extracted ot {}".format(input_name, output_name))
+
+def read_json(filename):
+    with open(filename, encoding="utf8", errors='ignore') as f:
+        return json.load(f)
+
+class Database():
+    def __init__(self, dbname):
+        self.dbpath = os.path.join('data', dbname) 
+        self._build_db()
+    
+    def _build_db(self):
+        conn = sqlite3.connect(self.dbpath)
+        conn.close()
+
+
+    def build_cities_table(self):
+        query = """
+            create table cities(
+                id int primary key,
+                name text, 
+                country text
+            )
+
+        """
+        with sqlite3.connect(self.dbpath) as conn:
+            conn.execute(query)
+
+
+
+if __name__ == "__main__":
+    filename = get_city_list()
+    unzip(filename, 'cities.json')
+    # db = Database('weather.db')
+    # db.build_cities_table()
+    # print(read_json('cities.json')[0])
