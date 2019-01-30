@@ -132,31 +132,49 @@ import json
 
 CITY_LIST = 'http://bulk.openweathermap.org/sample/city.list.json.gz'
 
-def get_id():
-    with open('app.id') as file:
-        data = file.readlines().pop()
+
+
+
+class Downloader():
+
+    def __init__(self):
+        self.appid = self.get_id()
+
+    def get_id(self):
+        with open('app.id') as file:
+            data = file.readlines().pop()
+            return data
+
+    def get_city_list(self):
+        file_name = CITY_LIST.split('/')[-1]
+        response = requests.get(CITY_LIST)
+        if response.status_code == 200:
+            print("Downloading {}".format(file_name))
+            with open(os.path.join('data',file_name), 'wb') as f:
+                f.write(response.content)
+            return file_name
+        return False
+
+    def unzip(self, input_name, output_name):
+        with gzip.open(os.path.join('data',input_name), 'rb') as f_in:
+            with open(os.path.join('data',output_name), 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+                print("File {} extracted ot {}".format(input_name, output_name))
+
+    def read_json(self, filepath):
+        with open(filepath, encoding="utf8", errors='ignore') as f:
+            return json.load(f)
+
+    def get_weather_by_city_ids(self, city_ids):
+        city_ids = map(lambda x: str(x), city_ids)
+        URI = 'http://api.openweathermap.org/data/2.5/group'
+        params = {  'id': ','.join(city_ids), 
+                    'units':'metric',
+                    'appid': self.appid
+                    }
+        r = requests.get(URI, params=params)
+        data = json.loads(r.text)
         return data
-
-
-def get_city_list():
-    file_name = CITY_LIST.split('/')[-1]
-    response = requests.get(CITY_LIST)
-    if response.status_code == 200:
-        print("Downloading {}".format(archive_name))
-        with open(os.path.join('data',archive_name), 'wb') as f:
-            f.write(response.content)
-        return file_name
-    return False
-
-def unzip(input_name,output_name):
-    with gzip.open(os.path.join('data',input_name), 'rb') as f_in:
-        with open(os.path.join('data',output_name), 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
-            print("File {} extracted ot {}".format(input_name, output_name))
-
-def read_json(filename):
-    with open(filename, encoding="utf8", errors='ignore') as f:
-        return json.load(f)
 
 class Database():
     def __init__(self, dbname):
@@ -180,11 +198,37 @@ class Database():
         with sqlite3.connect(self.dbpath) as conn:
             conn.execute(query)
 
+    def build_city_weather_table(self):
+        query = """
+            create table weather(
+                city_id int primary key,
+                name text,
+                dt date,
+                temp int, 
+                weather_id int
+            )
+
+        """
+        with sqlite3.connect(self.dbpath) as conn:
+            conn.execute(query)
+
+    def load_city_data(self, filepath):
+        data = read_json(filepath)
+        with sqlite3.connect(self.dbpath) as c:
+            for row in data:
+                c.execute('INSERT INTO cities VALUES (?,?,?)', [row['id'], row['name'],row['country']])
+            c.commit()
+
+
+    def get_city_by_name(self, city):
+        with sqlite3.connect(self.dbpath) as c:
+            cur = c.cursor()
+            cur.execute("SELECT id, name, country from cities where name LIKE ?", (city,))
+            return [row for row in cur.fetchall()]
 
 
 if __name__ == "__main__":
-    filename = get_city_list()
-    unzip(filename, 'cities.json')
-    # db = Database('weather.db')
-    # db.build_cities_table()
-    # print(read_json('cities.json')[0])
+    city_ids = [524901,703448,2643743]
+    d = Downloader()
+    data = d.get_weather_by_city_ids(city_ids)
+    print(data)
